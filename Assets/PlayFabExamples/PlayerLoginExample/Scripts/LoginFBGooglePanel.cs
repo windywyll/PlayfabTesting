@@ -15,6 +15,7 @@ public class LoginFBGooglePanel : MonoBehaviour
     public InputField LoginGooglePasswordField;
     public Text LoginGoogleErrorText;
     public Button LoginGoogleButton;
+    protected string lastResponse = "";
 
     void OnEnable()
     {
@@ -28,31 +29,91 @@ public class LoginFBGooglePanel : MonoBehaviour
         LoginGoogleButton.onClick.RemoveAllListeners();
     }
 
+    void Awake()
+    {
+        FBInit();
+    }
 
+    #region Facebook
+
+    #region initFB
+    private void FBInit()
+    {
+        FB.Init(OnInitComplete, OnHideUnity);
+    }
+
+    private void OnInitComplete()
+    {
+        if (FB.IsLoggedIn)
+        {
+            Debug.Log("LoggedIn");
+        }
+        else
+        {
+            CallFBLogin();
+        }
+    }
+
+    private void OnHideUnity(bool isGameShown)
+    {
+        Debug.Log("Is game showing? " + isGameShown);
+    }
+    #endregion
+
+    #region LoginFB
     public void LoginFB()
     {
 
-        var loginRequest = new LoginWithFacebookRequest()
-        {
-            TitleId = PlayFabSettings.TitleId,
-            AccessToken = "jfidsoph",
-            CreateAccount = true
-            //Username = LoginFBUsernameField.text,
-            //Password = LoginFBPasswordField.text
-        };
-
-        PlayFabClientAPI.LoginWithFacebook(loginRequest, (result) =>
-        {
-            LoginRegisterSuccess(result.PlayFabId);
-        }, (error) =>
-        {
-            LoginFBErrorText.text = error.ErrorMessage;
-            LoginFBErrorText.gameObject.transform.parent.gameObject.SetActive(true);
-            PlayFabErrorHandler.HandlePlayFabError(error);
-        });
-
+        CallFBLogin();
+        
     }
 
+    private void CallFBLogin()
+    {
+        FB.Login("public_profile,email,user_friends", LoginCallback);
+        
+    }
+
+    void LoginCallback(FBResult result)
+    {
+        if (result.Error != null)
+            lastResponse = "Error Response:\n" + result.Error;
+        else if (!FB.IsLoggedIn)
+        {
+            lastResponse = "Login cancelled by Player";
+        }
+        else
+        {
+            lastResponse = "Login was successful!";
+
+            var loginRequest = new LoginWithFacebookRequest()
+            {
+                TitleId = PlayFabSettings.TitleId,
+                AccessToken = FB.AccessToken,
+                CreateAccount = true
+            };
+
+            PlayFabClientAPI.LoginWithFacebook(loginRequest, (PFresult) =>
+            {
+                LoginRegisterSuccess(PFresult.PlayFabId);
+            }, (error) =>
+            {
+                LoginFBErrorText.text = error.ErrorMessage;
+                LoginFBErrorText.gameObject.transform.parent.gameObject.SetActive(true);
+                PlayFabErrorHandler.HandlePlayFabError(error);
+            });
+
+            StartCoroutine("ShowGameMenu");
+        }
+    }
+
+    #endregion
+
+    #endregion
+
+    #region GoogleLoginNeverFinished
+
+    //The google Login Should probably have it's own panel and own script but as is, it doesn't ork
     public void LoginGoogle()
     {
         var request = new LoginWithGoogleAccountRequest()
@@ -84,6 +145,7 @@ public class LoginFBGooglePanel : MonoBehaviour
 
         Debug.Log("Login Successfully Go to your game..");
     }
+    #endregion
 
     IEnumerator ShowGameMenu()
     {
