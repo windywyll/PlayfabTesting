@@ -25,6 +25,41 @@ public class GameMenuPanel : MonoBehaviour {
         GameButton.onClick.RemoveAllListeners();
     }
 
+    #region updateRankings
+
+    public void updateLeaderboard(int newRkg)
+    {
+        List<StatisticUpdate> valToUpdate = new List<StatisticUpdate>();
+
+        StatisticUpdate rkgToUpdate = new StatisticUpdate();
+        rkgToUpdate.StatisticName = "GTBL_Rankings";
+        rkgToUpdate.Value = newRkg;
+
+        Debug.Log(newRkg);
+
+        valToUpdate.Add(rkgToUpdate);
+
+        UpdatePlayerStatisticsRequest request = new UpdatePlayerStatisticsRequest()
+        {
+            Statistics = valToUpdate
+        };
+
+        PlayFabClientAPI.UpdatePlayerStatistics(request, OnUpdPlayerStatsSuccess, OnUpdPlayerStatsError);
+    }
+
+    private void OnUpdPlayerStatsSuccess(UpdatePlayerStatisticsResult result)
+    {
+        Debug.Log("Successfully updated ranking.");
+    }
+
+    private void OnUpdPlayerStatsError(PlayFabError error)
+    {
+        Debug.Log(error.ErrorMessage);
+    }
+
+    #endregion
+
+    #region ButtonLeaderboard
     public void clickOnLeaderboard()
     {
         StartCoroutine(ShowLeaderboardScreen());
@@ -35,7 +70,9 @@ public class GameMenuPanel : MonoBehaviour {
         yield return new WaitForSeconds(1f);
         PlayFabDialogManager.SendEvent("Leaderboard");
     }
+    #endregion
 
+    #region SimulateGame
     IEnumerator simulateGame()
     {
         do
@@ -73,36 +110,6 @@ public class GameMenuPanel : MonoBehaviour {
         StartCoroutine(simulateGame());
     }
 
-    public void updateLeaderboard(int newRkg)
-    {
-        List<StatisticUpdate> valToUpdate = new List<StatisticUpdate>();
-
-        StatisticUpdate rkgToUpdate = new StatisticUpdate();
-        rkgToUpdate.StatisticName = "GTBL_Rankings";
-        rkgToUpdate.Value = newRkg;
-
-        Debug.Log(newRkg);
-
-        valToUpdate.Add(rkgToUpdate);
-
-        UpdatePlayerStatisticsRequest request = new UpdatePlayerStatisticsRequest()
-        {
-            Statistics = valToUpdate
-        };
-
-        PlayFabClientAPI.UpdatePlayerStatistics(request, OnUpdPlayerStatsSuccess, OnUpdPlayerStatsError);
-    }
-    
-    private void OnUpdPlayerStatsSuccess(UpdatePlayerStatisticsResult result)
-    {
-        Debug.Log("Bravo.");
-    }
-
-    private void OnUpdPlayerStatsError(PlayFabError error)
-    {
-        Debug.Log(error.ErrorMessage);
-    }
-
     private void getRankings()
     {
         wantedStats = new List<string>();
@@ -131,4 +138,6 @@ public class GameMenuPanel : MonoBehaviour {
     {
         Debug.Log(error.ErrorMessage);
     }
+
+    #endregion
 }

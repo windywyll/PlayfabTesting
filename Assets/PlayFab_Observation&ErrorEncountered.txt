@@ -1,0 +1,39 @@
+Playfab:
+	
+	Players:
+		username : toto
+		password : test123
+
+		username : tattle
+		password : test123
+
+	Observations:
+	The GameManager is the webpage of the game on PlayFab.
+
+	The docs don't really help except to understand what variables to pass to functions and what you retrieve.
+	The Webinars they've done have some quite good content even though some of it is obsolete.
+	The forum can be a good start to search some help but the most helpful was the support by mail.
+	Even though there can be some delay between the exchanges, due to the fact that playfab is in the United States,
+	but they really try to see the problem to the end and not abandon midway.
+
+	The title ID of Playfab must be filled on the GameObject that have the PlayFabAuthManager.
+
+	The request to PlayFab can take some time and because they are asynchronous the script doesn't wait to have 
+	the results to continue.
+
+	The update of the ranking have been made by the client because the server wouldn't update my cloudscript.
+	Of course it's best to just send the score to the cloudscript which will do the update.
+	To disable the update by the client it should also be done in the GameManager -> Settings -> API Feature.
+
+	Playfab allows the creation of leaderboards that automatically reset at certain frequency. (daily, monthly, etc..)
+
+I use the FacebookSDK for unity v6.2.1
+For Facebook must fill the object FacebookSettings, can be found in the tab Facebook.
+
+If encountered the error:
+	
+	=>Unable to verify assembly data
+
+		Check in FB Script in Facebook loader Class
+		The region around the var assembly may not have the version of unity you work with.
+		If you add it the problem should be solved.

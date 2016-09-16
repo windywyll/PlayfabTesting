@@ -1,0 +1,13 @@
+PlayFab
+	-Login via Facebook :
+		Login => LoginFBGooglePanel, also use the FB class of the facebook SDK
+	
+	-Login/Register via PlayFab :
+		Login/Register => LoginRegPanel
+
+	-Rankings Update/Get :
+		Update => GameMenuPanel
+		Get => LeaderboardScript
+
+	-Elo Algorythm :
+		ELORanking

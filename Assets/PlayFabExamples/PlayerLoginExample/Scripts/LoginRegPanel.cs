@@ -37,32 +37,11 @@ public class LoginRegPanel : MonoBehaviour
         RegButton.onClick.RemoveAllListeners();
     }
 
+    #region Register
 
-    public void Login()
-    {
-
-         var loginRequest = new LoginWithPlayFabRequest()
-         {
-             TitleId = PlayFabSettings.TitleId,
-             Username = LoginUsernameField.text, 
-             Password = LoginPasswordField.text
-         };
-
-        PlayFabClientAPI.LoginWithPlayFab(loginRequest, (result) =>
-        {
-            LoginSuccess(result.PlayFabId);
-        }, (error) =>
-        {
-            LoginErrorText.text = error.ErrorMessage;
-            LoginErrorText.gameObject.transform.parent.gameObject.SetActive(true);
-            PlayFabErrorHandler.HandlePlayFabError(error);
-        });
-
-    }
-
+    //Register a user inside playfab.
     public void Register()
     {
-        /*
         var request = new RegisterPlayFabUserRequest()
         {
             TitleId = PlayFabSettings.TitleId,
@@ -70,6 +49,7 @@ public class LoginRegPanel : MonoBehaviour
             Password = RegPasswordField.text,
             Email = RegEmailField.text
         };
+
         PlayFabClientAPI.RegisterPlayFabUser(request, (result) =>
         {
             RegisterSuccess(result.PlayFabId);
@@ -78,9 +58,10 @@ public class LoginRegPanel : MonoBehaviour
             RegErrorText.text = error.ErrorMessage;
             RegErrorText.gameObject.transform.parent.gameObject.SetActive(true);
             PlayFabErrorHandler.HandlePlayFabError(error);
-        });*/
+        });
     }
 
+    #region create/send mail
     private void sendMail(String hash)
     {
         
@@ -115,6 +96,63 @@ public class LoginRegPanel : MonoBehaviour
             return BitConverter.ToString(hash).Replace("-", String.Empty);
         }
     }
+    #endregion
+
+    private void RegisterSuccess(string playFabId)
+    {
+        PlayFab.PlayFabAuthManager.PlayFabId = playFabId;
+        LoginErrorText.gameObject.transform.parent.gameObject.SetActive(false);
+        RegErrorText.gameObject.transform.parent.gameObject.SetActive(false);
+
+        String toHash = GetStringSha256Hash(RegEmailField.text);
+        toHash += GetStringSha256Hash(RegUsernameField.text);
+        toHash += GetStringSha256Hash(DateTime.UtcNow.ToString());
+
+        sendMail(toHash);
+
+        CloudScripts.AddVerificationsData(toHash, playFabId);
+
+        PlayFab.PlayFabAuthManager.PlayFabId = null;
+
+        Debug.Log("Register Successfully");
+    }
+
+    #endregion
+
+    #region LoginPF
+    public void Login()
+    {
+
+        var loginRequest = new LoginWithPlayFabRequest()
+        {
+            TitleId = PlayFabSettings.TitleId,
+            Username = LoginUsernameField.text,
+            Password = LoginPasswordField.text
+        };
+
+        //For Request you can either make little inline function as under or pass the name of a callback function
+        //that you write under (ex: in the script CloudScripts)
+        PlayFabClientAPI.LoginWithPlayFab(loginRequest, (result) =>
+        {
+            LoginSuccess(result.PlayFabId);
+        }, (error) =>
+        {
+            LoginErrorText.text = error.ErrorMessage;
+            LoginErrorText.gameObject.transform.parent.gameObject.SetActive(true);
+            PlayFabErrorHandler.HandlePlayFabError(error);
+        });
+
+    }
+    private void LoginSuccess(string playFabId)
+    {
+        PlayFab.PlayFabAuthManager.PlayFabId = playFabId;;
+
+        //isAccountVerified(playFabId);
+
+        StartCoroutine(ShowGameMenu());
+
+        Debug.Log("Login Successfully Go to your game..");
+    }
 
     private bool isAccountVerified(string playFabID)
     {
@@ -125,7 +163,7 @@ public class LoginRegPanel : MonoBehaviour
             PlayFabId = playFabID,
             Keys = null
         };
-        
+
         PlayFabClientAPI.GetUserReadOnlyData(req, (result) => {
             Debug.Log("Got user data:");
 
@@ -152,42 +190,11 @@ public class LoginRegPanel : MonoBehaviour
         return false;
     }
 
-    private void LoginSuccess(string playFabId)
-    {
-        PlayFab.PlayFabAuthManager.PlayFabId = playFabId;
-        //deactivate panel
-        //LoginErrorText.gameObject.transform.parent.gameObject.SetActive(false);
-        //RegErrorText.gameObject.transform.parent.gameObject.SetActive(false);
-
-        //isAccountVerified(playFabId);
-
-        StartCoroutine(ShowGameMenu());
-
-        Debug.Log("Login Successfully Go to your game..");
-    }
+    #endregion
 
     private void Logout()
     {
-        //Wipe SessionTicket
-    }
-
-    private void RegisterSuccess(string playFabId)
-    {
-        PlayFab.PlayFabAuthManager.PlayFabId = playFabId;
-        LoginErrorText.gameObject.transform.parent.gameObject.SetActive(false);
-        RegErrorText.gameObject.transform.parent.gameObject.SetActive(false);
-
-        String toHash = GetStringSha256Hash(RegEmailField.text);
-        toHash += GetStringSha256Hash(RegUsernameField.text);
-        toHash += GetStringSha256Hash(DateTime.UtcNow.ToString());
-
-        sendMail(toHash);
-
-        CloudScripts.AddVerificationsData(toHash);
-
-        PlayFab.PlayFabAuthManager.PlayFabId = null;
-
-        Debug.Log("Register Successfully");
+        //The only way to logout a playfab login is to erease the session ticket.
     }
 
     IEnumerator ShowGameMenu()

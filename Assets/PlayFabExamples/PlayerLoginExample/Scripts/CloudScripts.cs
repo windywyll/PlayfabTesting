@@ -5,14 +5,17 @@ using PlayFab.ClientModels;
 using PlayFab.Json;
 using System.Collections.Generic;
 
-public class CloudScripts : MonoBehaviour {
+public class CloudScripts{
 
-    public static void AddVerificationsData(string hash)
+    //The function pass a hash that could help to do an e-mail verification by passing it in the URL.
+    //then catch it on a webpage with the Javascript SDK of Playfab to validate the player on the Server.
+    public static void AddVerificationsData(string hash, string PlayFabId)
     {
         ExecuteCloudScriptRequest request = new ExecuteCloudScriptRequest()
         {
-            FunctionName = "AddVerificationsData", // Arbitrary function name (must exist in your uploaded cloud.js file)
-            FunctionParameter = new { playerID = "4F68C3924E7C355",
+            FunctionName = "AddVerificationsData", // Arbitrary function name, must exist in the cloudscript in playfab
+                                                   // to find it login on playfab select the wanted game then server. 
+            FunctionParameter = new { playerID = PlayFabId,
                                     Data = new Dictionary<string, string>()
                                             {
                                               {"Hash", hash},
@@ -24,8 +27,8 @@ public class CloudScripts : MonoBehaviour {
         };
         PlayFabClientAPI.ExecuteCloudScript(request, OnCloudAddingDatas, OnErrorShared);
     }
-
-    // C# (Unity3d)
+    
+    // Success callback of the request.
     // Await the response and process the result
     private static void OnCloudAddingDatas(ExecuteCloudScriptResult result)
     {
@@ -40,8 +43,9 @@ public class CloudScripts : MonoBehaviour {
         Debug.Log((string)messageValue);
     }
 
+    //Error callback of the request
     private static void OnErrorShared(PlayFabError error)
     {
-
+        Debug.Log(error.ErrorMessage);
     }
 }
